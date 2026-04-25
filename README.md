@@ -14,9 +14,10 @@ c:\AAI\
 ├── agent/
 │   ├── __init__.py
 │   └── agent_pipeline.py       ← Agent Layer
-├── app/
-│   ├── __init__.py
-│   └── streamlit_app.py        ← Interface Layer
+├── backend/
+│   └── api.py                  ← Flask REST API
+├── frontend/
+│   └── src/                    ← React Web App
 ├── traffic_sign_capsnet.h5     ← Pre-trained CapsNet model (place here)
 ├── requirements.txt
 └── README.md
@@ -42,12 +43,23 @@ c:\AAI\traffic_sign_capsnet.h5
 
 Or specify a custom path via the sidebar in the UI.
 
-### 3. Run the Streamlit app
+### 3. Run the Backend (Flask API)
 
 ```bash
 cd c:\AAI
-streamlit run app/streamlit_app.py
+python backend/api.py
 ```
+The API will run on `http://localhost:5000`.
+
+### 4. Run the Frontend (React App)
+
+Open a new terminal:
+```bash
+cd c:\AAI\frontend
+npm install
+npm run dev
+```
+Access the premium React UI at `http://localhost:5173`.
 
 ---
 
@@ -78,13 +90,12 @@ Returns a structured `AgentResponse` with:
 - `confidence_assessment`
 - `reasoning_trace` (step-by-step log)
 
-### Layer 3 — Interface (`app/streamlit_app.py`)
+### Layer 3 — Interface (`frontend/` & `backend/`)
 
-- Premium dark glassmorphism Streamlit UI
-- Two-column layout: image upload + analysis results
-- Animated confidence bar, prediction pills
-- Collapsible agent reasoning trace
-- Sidebar: class browser + custom model path input
+- Premium dark glassmorphism React UI (Vite + TailwindCSS)
+- `framer-motion` micro-animations for stunning visual feedback
+- Flask backend exposing the agent pipeline via REST APIs
+- Real-time API health checks and dynamic confidence visualization
 
 ---
 
@@ -109,4 +120,4 @@ Classes 0–42 cover all German Traffic Sign Recognition Benchmark categories in
 
 - **No retraining** — inference only
 - Model output supports both single-tensor (softmax) and multi-output (CapsNet capsule lengths) formats
-- The singleton model cache avoids repeated `.h5` file loads across Streamlit re-runs
+- The singleton model cache avoids repeated `.h5` file loads across API requests

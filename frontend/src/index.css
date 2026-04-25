@@ -1,0 +1,262 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+@layer base {
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-sans);
+    background: #06060e;
+    color: #e8e6f0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(120, 90, 220, 0.2); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(120, 90, 220, 0.35); }
+  ::selection { background: rgba(120, 90, 220, 0.3); color: #fff; }
+}
+
+/* === AMBIENT BACKGROUND === */
+.ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ambient-bg::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: -20%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(ellipse, rgba(100, 60, 200, 0.08) 0%, transparent 70%);
+  animation: drift1 25s ease-in-out infinite;
+}
+
+.ambient-bg::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  right: -15%;
+  width: 70%;
+  height: 70%;
+  background: radial-gradient(ellipse, rgba(40, 120, 200, 0.06) 0%, transparent 70%);
+  animation: drift2 30s ease-in-out infinite;
+}
+
+@keyframes drift1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(8%, 12%) scale(1.05); }
+  66% { transform: translate(-5%, 6%) scale(0.97); }
+}
+
+@keyframes drift2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-10%, -8%) scale(1.08); }
+}
+
+/* === NOISE TEXTURE === */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.018;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* === CARD SYSTEM === */
+.surface {
+  background: rgba(255, 255, 255, 0.022);
+  border: 1px solid rgba(255, 255, 255, 0.045);
+  border-radius: 16px;
+  transition: border-color 0.4s ease, background 0.4s ease, box-shadow 0.4s ease;
+}
+
+.surface:hover {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.032);
+}
+
+.surface-elevated {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.15);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.surface-elevated:hover {
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.25), 0 8px 32px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+}
+
+/* === TYPOGRAPHY === */
+.text-display {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.text-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.32);
+}
+
+/* === GRADIENT ACCENTS === */
+.accent-gradient {
+  background: linear-gradient(135deg, #785adc 0%, #5b8def 50%, #44c9a1 100%);
+}
+
+.accent-text {
+  background: linear-gradient(135deg, #a48ef0 0%, #6da3f7 50%, #5dd4aa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* === INTERACTIVE BUTTON === */
+.btn-action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: white;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.25s ease;
+  background: linear-gradient(135deg, #6c3dd1 0%, #5b7de8 100%);
+  box-shadow: 0 2px 8px rgba(108, 61, 209, 0.25);
+}
+
+.btn-action:hover {
+  box-shadow: 0 4px 16px rgba(108, 61, 209, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-action:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(108, 61, 209, 0.2);
+}
+
+.btn-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* === STATUS DOT === */
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.online {
+  background: #3ddc84;
+  box-shadow: 0 0 6px rgba(61, 220, 132, 0.5);
+}
+
+.status-dot.offline {
+  background: #f06;
+  box-shadow: 0 0 6px rgba(255, 0, 102, 0.5);
+}
+
+.status-dot.pending {
+  background: #f0a030;
+  box-shadow: 0 0 6px rgba(240, 160, 48, 0.5);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* === CONFIDENCE BAR === */
+.conf-track {
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.conf-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* === TAG / BADGE === */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* === SPINNER === */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-top-color: rgba(255,255,255,0.8);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* === DROPZONE === */
+.dropzone {
+  border: 1.5px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.01);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.dropzone:hover, .dropzone.active {
+  border-color: rgba(120, 90, 220, 0.35);
+  background: rgba(120, 90, 220, 0.04);
+}
+
+/* === DIVIDER === */
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+}
