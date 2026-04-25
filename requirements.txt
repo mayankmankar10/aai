@@ -1,0 +1,7 @@
+# CapsNet Traffic Sign Agent — Dependencies
+tensorflow>=2.10.0
+keras>=2.10.0
+opencv-python>=4.7.0
+numpy>=1.23.0
+streamlit>=1.32.0
+Pillow>=9.5.0

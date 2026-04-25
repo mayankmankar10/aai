@@ -1,0 +1,82 @@
+# =============================================================================
+# CapsNet Traffic Sign Agent — .gitignore
+# =============================================================================
+
+# ── Model files (large binaries — do NOT commit) ──────────────────────────
+*.h5
+*.keras
+*.weights.h5
+*.pb
+*.tflite
+*.onnx
+saved_model/
+
+# ── Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# ── Virtual environments ──────────────────────────────────────────────────
+venv/
+env/
+.env/
+.venv/
+ENV/
+
+# ── Jupyter Notebooks ─────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── Environment variables ─────────────────────────────────────────────────
+.env
+.env.*
+*.env
+
+# ── Distribution / packaging ──────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+*.egg
+wheels/
+
+# ── Testing & coverage ────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.log
+
+# ── OS files ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDEs & editors ────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── TensorFlow / training artifacts ───────────────────────────────────────
+logs/
+runs/
+checkpoints/
+tensorboard_logs/
+*.ckpt
+*.ckpt.*
+checkpoint
+
+# ── Data (downloaded datasets — re-download via tfds) ─────────────────────
+data/
+datasets/
+~/tensorflow_datasets/
+
+# ── Temporary files ───────────────────────────────────────────────────────
+tmp/
+temp/
+*.tmp
+*.bak
