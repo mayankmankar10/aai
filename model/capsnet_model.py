@@ -118,8 +118,8 @@ def load_model(model_path: Optional[str] = None):
     try:
         # Import TF lazily so the module is importable even without GPU
         import tensorflow as tf  # noqa: PLC0415
-        import keras
-        from keras import layers
+        from tensorflow import keras
+        from tensorflow.keras import layers
 
         @keras.saving.register_keras_serializable()
         def squash(vectors, axis=-1):
