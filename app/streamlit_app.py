@@ -381,7 +381,7 @@ with col_upload:
 
     if uploaded_file:
         img = Image.open(uploaded_file)
-        st.image(img, caption="Uploaded Image", use_container_width=True)
+        st.image(img, caption="Uploaded Image", use_column_width=True)
         st.markdown(
             f"<div style='color:rgba(255,255,255,0.4);font-size:0.78rem;margin-top:0.4rem;'>"
             f"📄 {uploaded_file.name} &nbsp;|&nbsp; {img.size[0]}×{img.size[1]} px</div>",

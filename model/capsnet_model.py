@@ -71,8 +71,8 @@ GTSRB_LABELS: dict[int, str] = {
     42: "End of no passing by vehicles over 3.5 metric tons",
 }
 
-# Default model path relative to project root
-_DEFAULT_MODEL_PATH = Path(__file__).resolve().parents[1] / "capsnet_model.h5"
+# Default model path — same directory as this file (model/capsnet_model.keras)
+_DEFAULT_MODEL_PATH = Path(__file__).resolve().parent / "capsnet_model.keras"
 
 
 # ---------------------------------------------------------------------------
@@ -88,8 +88,8 @@ def load_model(model_path: Optional[str] = None):
     Parameters
     ----------
     model_path : str, optional
-        Explicit path to the .h5 file.  If omitted, the default path
-        ``traffic_sign_capsnet.h5`` at the project root is used.
+        Explicit path to the .h5 or .keras file.  If omitted, the default
+        ``model/capsnet_model.keras`` (same folder as this script) is used.
 
     Returns
     -------
@@ -112,15 +112,110 @@ def load_model(model_path: Optional[str] = None):
     if not target.exists():
         raise FileNotFoundError(
             f"CapsNet model not found at '{target}'.\n"
-            "Please place your trained model file at that path and retry."
+            "Place your trained model file (capsnet_model.keras or .h5) at that path and retry."
         )
 
     try:
         # Import TF lazily so the module is importable even without GPU
         import tensorflow as tf  # noqa: PLC0415
+        import keras
+        from keras import layers
 
-        logger.info("Loading CapsNet model from: %s", target)
-        _model = tf.keras.models.load_model(str(target), compile=False)
+        @keras.saving.register_keras_serializable()
+        def squash(vectors, axis=-1):
+            """Squashing activation — keeps direction, limits magnitude to (0,1)."""
+            s_sq   = tf.reduce_sum(tf.square(vectors), axis=axis, keepdims=True)
+            scale  = s_sq / (1.0 + s_sq) / tf.sqrt(s_sq + tf.keras.backend.epsilon())
+            return scale * vectors
+
+        @keras.saving.register_keras_serializable()
+        class CapsuleLayer(layers.Layer):
+            """Digit Capsule layer with dynamic routing."""
+            def __init__(self, num_capsules, dim_capsules, routing_iters=3, **kw):
+                super().__init__(**kw)
+                self.num_capsules  = num_capsules
+                self.dim_capsules  = dim_capsules
+                self.routing_iters = routing_iters
+
+            def build(self, input_shape):
+                self.in_caps = input_shape[1]
+                self.in_dim  = input_shape[2]
+                self.W = self.add_weight(
+                    name        = "routing_weights",
+                    shape       = (self.in_caps, self.num_capsules, self.in_dim, self.dim_capsules),
+                    initializer = "glorot_uniform",
+                    trainable   = True,
+                )
+                super().build(input_shape)
+
+            def call(self, u):
+                B  = tf.shape(u)[0]
+                # u shape: (B, in_caps, in_dim)
+                # W shape: (in_caps, num_capsules, in_dim, dim_capsules)
+                # u_hat shape: (B, in_caps, num_capsules, dim_capsules)
+                u_hat = tf.einsum('bic,ijcd->bijd', u, self.W)
+
+                b = tf.zeros([B, self.in_caps, self.num_capsules, 1])
+                for i in range(self.routing_iters):
+                    c    = tf.nn.softmax(b, axis=2)                            
+                    s    = tf.reduce_sum(c * u_hat, axis=1, keepdims=True)     
+                    v    = squash(s, axis=-1)                                  
+                    if i < self.routing_iters - 1:
+                        b += tf.reduce_sum(u_hat * v, axis=-1, keepdims=True)  
+                return tf.squeeze(v, axis=1)                                   
+            
+            def get_config(self):
+                config = super().get_config()
+                config.update({
+                    "num_capsules": self.num_capsules,
+                    "dim_capsules": self.dim_capsules,
+                    "routing_iters": self.routing_iters
+                })
+                return config
+
+        @keras.saving.register_keras_serializable()
+        class Length(layers.Layer):
+            """Computes the L2 norm of each capsule vector."""
+            def call(self, x):
+                return tf.sqrt(tf.reduce_sum(tf.square(x), axis=-1))
+
+        @keras.saving.register_keras_serializable()
+        def margin_loss(y_true, y_pred, m_plus=0.9, m_minus=0.1, lam=0.5):
+            """Margin loss for CapsNet."""
+            L = (y_true * tf.square(tf.maximum(0.0, m_plus - y_pred))
+                 + lam * (1.0 - y_true) * tf.square(tf.maximum(0.0, y_pred - m_minus)))
+            return tf.reduce_mean(tf.reduce_sum(L, axis=1))
+
+        logger.info("Building CapsNet architecture...")
+        
+        # 1. Inputs
+        inp = keras.Input(shape=(_IMG_SIZE[0], _IMG_SIZE[1], 3), name="input_layer")
+        
+        # 2. Initial Conv2D
+        x = layers.Conv2D(96, 5, strides=1, activation="relu", padding="valid", name="conv2d")(inp)
+        x = layers.Dropout(0.3, name="dropout")(x)
+        
+        # 3. Primary Capsules (Conv2D -> Reshape -> Squash)
+        x = layers.Conv2D(96, 5, strides=2, activation="relu", padding="valid", name="conv2d_1")(x)
+        x = layers.Dropout(0.3, name="dropout_1")(x)
+        primary_caps = layers.Reshape((-1, 8), name="reshape")(x)
+        primary_caps = layers.Lambda(squash, name="lambda")(primary_caps)
+        
+        # 4. Digit Capsules
+        digit_caps = CapsuleLayer(
+            num_capsules=43, dim_capsules=16, routing_iters=3, name="capsule_layer"
+        )(primary_caps)
+        
+        # 5. Length (Norm)
+        def length_norm(x):
+            return tf.sqrt(tf.reduce_sum(tf.square(x), axis=-1))
+            
+        output = layers.Lambda(length_norm, name="lambda_1")(digit_caps)
+        
+        _model = keras.Model(inputs=inp, outputs=output, name="CapsNet_GTSRB")
+        
+        logger.info("Loading weights from: %s", target)
+        _model.load_weights(str(target))
         logger.info("Model loaded successfully.")
         return _model
     except Exception as exc:
