@@ -281,4 +281,4 @@ for name, val in zip(model.metrics_names, results):
     print(f"  {name}: {val:.4f}")
 
 print(f"\n✅ Model saved to: {os.path.abspath(SAVE_PATH)}")
-print("   You can now run:  streamlit run app/streamlit_app.py")
+print("   You can now run the Flask backend and React frontend.")

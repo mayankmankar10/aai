@@ -209,7 +209,7 @@ def load_model(model_path: Optional[str] = None):
         # 5. Length (Norm)
         def length_norm(x):
             return tf.sqrt(tf.reduce_sum(tf.square(x), axis=-1))
-            
+        
         output = layers.Lambda(length_norm, name="lambda_1")(digit_caps)
         
         _model = keras.Model(inputs=inp, outputs=output, name="CapsNet_GTSRB")
